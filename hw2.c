@@ -71,7 +71,7 @@ struct task_struct* recurtion_heavist(struct task_struct* curr_task){
 }
 
 
-asmlinkage long get_heaviest_descendant(void){
+asmlinkage long sys_get_heaviest_descendant(void){
 
     if(list_empty(&current->children)){
         return -ECHILD;
