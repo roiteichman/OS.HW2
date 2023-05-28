@@ -1,7 +1,3 @@
-//
-// Created by teich on 25/05/2023.
-//
-
 #include <linux/kernel.h>
 #include <linux/thread_info.h>
 #include <linux/sched.h>
@@ -54,17 +50,29 @@ asmlinkage long sys_get_ancestor_sum(void){
 
 
 struct task_struct* recurtion_heavist(struct task_struct* curr_task){
-    struct task_struct* max = curr_task;
-    struct task_struct* temp = NULL;
+    struct task_struct* max = NULL;
+    struct task_struct* curr = NULL;
+    struct task_struct* hevi_child = NULL;
     struct list_head* child = NULL;
     if (list_empty(&curr_task->children)) {
         return max;
     }
     list_for_each(child, &current->children){
-        temp = list_entry(child, struct task_struct, sibling);
-        temp = recurtion_heavist(temp);
-        if (temp->weight > max->weight || (temp->weight == max->weight && temp->pid < max->pid)){
-            max = temp;
+        curr = list_entry(child, struct task_struct, sibling);
+        hevi_child = recurtion_heavist(temp);
+        if (max == NULL){
+            max = curr;
+        }
+        if (hevi_child != NULL){
+            if (curr->weight > hevi_child->weight || (curr->weight == hevi_child->weight && curr->pid < hevi_child->pid)){
+                hevi_child = curr;
+            }
+        }
+        else {
+            hevi_child = curr;
+        }
+        if (hevi_child->weight > max->weight || (hevi_child->weight == max->weight && hevi_child->pid < max->pid)){
+            max = hevi_child;
         }
     }
     return max;
@@ -79,3 +87,27 @@ asmlinkage long sys_get_heaviest_descendant(void){
 
     return recurtion_heavist(current)->pid;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
