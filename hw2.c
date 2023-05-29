@@ -48,30 +48,22 @@ asmlinkage long sys_get_ancestor_sum(void){
     return sum;
 }
 
-struct task_struct* recurtion_heavist(struct task_struct* curr_task){
-    struct task_struct* max = NULL;
-    struct task_struct* curr = NULL;
-    struct task_struct* hevi_child = NULL;
+
+struct task_struct* recurtion_heaviest(struct task_struct* curr_task, bool first){
+    struct task_struct* max = first ? NULL : curr_task;
+    struct task_struct* temp = NULL;
     struct list_head* child = NULL;
     if (list_empty(&curr_task->children)) {
-        return NULL;
+        return max;
     }
-    list_for_each(child, &current->children){
-        curr = list_entry(child, struct task_struct, sibling);
-        hevi_child = recurtion_heavist(curr);
+    list_for_each(child, &curr_task->children){
+        temp = list_entry(child, struct task_struct, sibling);
+        temp = recurtion_heaviest(temp, false);
         if (max == NULL){
-            max = curr;
+            max = temp;
         }
-        if (hevi_child != NULL){
-            if (curr->weight > hevi_child->weight || (curr->weight == hevi_child->weight && curr->pid < hevi_child->pid)){
-                hevi_child = curr;
-            }
-        }
-        else {
-            hevi_child = curr;
-        }
-        if (hevi_child->weight > max->weight || (hevi_child->weight == max->weight && hevi_child->pid <= max->pid)){
-            max = hevi_child;
+        else if (temp->weight > max->weight || (temp->weight == max->weight && temp->pid < max->pid)){
+            max = temp;
         }
     }
     return max;
@@ -79,35 +71,8 @@ struct task_struct* recurtion_heavist(struct task_struct* curr_task){
 
 
 asmlinkage long sys_get_heaviest_descendant(void){
-
     if(list_empty(&current->children)){
         return -ECHILD;
     }
-
-    return recurtion_heavist(current)->pid;
+    return recurtion_heaviest(current, true)->pid;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
