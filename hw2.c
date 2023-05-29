@@ -4,7 +4,7 @@
 #include <linux/errno.h>
 #include <linux/list.h>
 
-#define PRINT_DEBUG
+//#define PRINT_DEBUG
 
 asmlinkage long sys_hello(void){
     printk("Hello, World!\n");
@@ -40,16 +40,13 @@ asmlinkage long sys_get_ancestor_sum(void){
         printk("current_process pid is: %d and weight is: %d\n", curr->pid ,curr->weight);
 #endif
         sum+=curr->weight;
-        // TODO: check if real_parent or parent !
         curr=curr->real_parent;
     }
-    //TODO: add idle (pid==0) or not ? right now not added
-
     return sum;
 }
 
 
-struct task_struct* recurtion_heaviest(struct task_struct* curr_task, bool first){
+struct task_struct* recursion_heaviest(struct task_struct* curr_task, bool first){
     struct task_struct* max = first ? NULL : curr_task;
     struct task_struct* temp = NULL;
     struct list_head* child = NULL;
@@ -58,7 +55,7 @@ struct task_struct* recurtion_heaviest(struct task_struct* curr_task, bool first
     }
     list_for_each(child, &curr_task->children){
         temp = list_entry(child, struct task_struct, sibling);
-        temp = recurtion_heaviest(temp, false);
+        temp = recursion_heaviest(temp, false);
         if (max == NULL){
             max = temp;
         }
@@ -74,5 +71,5 @@ asmlinkage long sys_get_heaviest_descendant(void){
     if(list_empty(&current->children)){
         return -ECHILD;
     }
-    return recurtion_heaviest(current, true)->pid;
+    return recursion_heaviest(current, true)->pid;
 }
